@@ -1,6 +1,6 @@
 {
   "name": "autenticacao-jwt-passport-top",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Sistema base em Nest pronto e pré-configurado para começar projetos incríveis de backend com autenticação profissional!",
   "author": "Mateus Garcia",
   "license": "MIT",
