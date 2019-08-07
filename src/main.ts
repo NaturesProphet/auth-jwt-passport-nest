@@ -12,7 +12,7 @@ async function bootstrap () {
 
 
   let options = new DocumentBuilder();
-  options.setTitle( 'Financeiro BrazilGo' )
+  options.setTitle( pacote.name )
   options.setDescription( pacote.description )
   options.setVersion( pacote.version )
   options.addTag( 'Documentação das rotas disponíveis na API' )
