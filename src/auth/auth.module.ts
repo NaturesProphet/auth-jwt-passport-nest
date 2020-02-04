@@ -1,28 +1,24 @@
-import { setEnvironment } from '../common/configs/env.confservice';
-setEnvironment();
-
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalStrategy } from './local.strategy';
-import { JwtStrategy } from './jwt.strategy';
-import { UsuarioModule } from '../usuario/usuario.module';
+import { LocalStrategy } from './strategys/local.strategy';
+import { JwtStrategy } from './strategys/jwt.strategy';
+import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { apiJWTKey, jwtExpirationTime } from '../common/configs/api.conf';
 import { AuthController } from './auth.controller';
-import { secretKey, tokenExpirationTime } from '../common/configs/api.conf';
-
 
 @Module( {
   imports: [
-    UsuarioModule,
+    UsersModule,
     PassportModule,
     JwtModule.register( {
-      secret: secretKey,
-      signOptions: { expiresIn: tokenExpirationTime }
+      secret: apiJWTKey,
+      signOptions: { expiresIn: jwtExpirationTime },
     } ),
   ],
   providers: [ AuthService, LocalStrategy, JwtStrategy ],
+  controllers: [ AuthController ],
   exports: [ AuthService ],
-  controllers: [ AuthController ]
 } )
 export class AuthModule { }

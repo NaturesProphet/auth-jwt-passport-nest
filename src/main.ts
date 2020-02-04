@@ -1,34 +1,43 @@
-import { setEnvironment } from './common/configs/env.confservice';
-setEnvironment();
-
+require( 'dotenv' ).config();
+import * as fs from 'fs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { port, env } from './common/configs/api.conf';
-import * as pacote from '../package.json';
+import { port, nodeEnvironment } from './common/configs/api.conf';
+import * as system from '../package.json';
+import { ValidationPipe } from '@nestjs/common';
+
 
 async function bootstrap () {
-  const app = await NestFactory.create( AppModule );
+
+  const httpsOptions =
+    nodeEnvironment == 'production' ?
+      {
+        key: fs.readFileSync( './secrets/key.pem', 'utf8' ),
+        cert: fs.readFileSync( './secrets/cert.pem' )
+      } : null;
+
+  const app = await NestFactory.create( AppModule, {
+    httpsOptions,
+  } );
+
+  app.useGlobalPipes( new ValidationPipe() );
+  app.enableCors( {
+    origin: '*'
+  } );
 
 
   let options = new DocumentBuilder();
-  options.setTitle( pacote.name )
-  options.setDescription( pacote.description )
-  options.setVersion( pacote.version )
-  options.addTag( 'Documentação das rotas disponíveis na API' )
+  options.setTitle( 'Projeto Base' )
+  options.setDescription( system.description )
+  options.setVersion( system.version )
   options.addBearerAuth();
-
-  if ( env == 'production' ) {
-    options.setSchemes( 'https', 'http' );
-  } else {
-    options.setSchemes( 'http', 'https' );
-  }
   const document = SwaggerModule.createDocument( app, options.build() );
-  SwaggerModule.setup( 'docs', app, document );
+  SwaggerModule.setup( '', app, document );
 
 
   await app.listen( port );
-  console.log( `API pronta e ouvindo na porta ${port}` );
+  console.log( `API is ready and listening to port ${port}` );
 }
 
 bootstrap();
