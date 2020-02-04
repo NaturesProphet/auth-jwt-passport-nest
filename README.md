@@ -19,4 +19,4 @@ npm start
 ```
 
 ## Debug
-Certifique-se que o banco de dados esteja acessível para que a aplicação possa iniciar. Após iniciar o Debug (F5), aguarde a mensagem "API pronta e ouvindo na porta 3000" no terminal do debugger antes de iniciar a sua depuração.
+Após iniciar o Debug (F5), aguarde a mensagem "API pronta e ouvindo na porta 3000" no terminal do debugger antes de iniciar a sua depuração.
