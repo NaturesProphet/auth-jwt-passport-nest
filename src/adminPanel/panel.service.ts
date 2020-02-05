@@ -100,7 +100,7 @@ export class AdminPanelService {
     try {
       let qb = this.permissionRepository.createQueryBuilder( 'p' )
         .where( '1=1' )
-        .orderBy( 'p.id', 'DESC' );
+        .orderBy( 'p.feature' );
       if ( query.id ) {
         qb.andWhere( 'p.id = :id', { id: query.id } );
       }
@@ -123,8 +123,9 @@ export class AdminPanelService {
     let endpoint = apiBaseUrl + req._parsedUrl.pathname;
     try {
       let qb = this.roleRepository.createQueryBuilder( 'r' )
+        .leftJoinAndSelect( 'r.permissions', 'permissions' )
         .where( '1=1' )
-        .orderBy( 'r.id', 'DESC' );
+        .orderBy( 'permissions.feature' );
       if ( query.id ) {
         qb.andWhere( 'r.id = :id', { id: query.id } );
       }
@@ -158,7 +159,7 @@ export class AdminPanelService {
 
     try {
       permissions = await this.permissionRepository.createQueryBuilder( 'p' )
-        .where( 'p.id IN :ids', { ids: dto.permissions } )
+        .where( `p.id IN (${dto.permissions})` )
         .orderBy( 'p.id', 'DESC' )
         .getMany();
     } catch ( err ) {
@@ -174,21 +175,22 @@ export class AdminPanelService {
     }
 
 
+    for ( let i = 0; i < permissions.length; i++ ) {
+      for ( let z = 0; z < role.permissions.length; z++ ) {
+        if ( role.permissions[ z ].id == permissions[ i ].id ) {
+          throw new UnprocessableEntityException( `A permissão ${permissions[ i ].id} `
+            + `já faz parte da role ${role.id}` );
+        }
+      }
+      role.permissions.push( permissions[ i ] );
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try {
+      return await this.roleRepository.save( role );
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
+    }
   }
 
 }

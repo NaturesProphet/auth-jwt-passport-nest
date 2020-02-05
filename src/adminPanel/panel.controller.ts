@@ -1,4 +1,4 @@
-import { Controller, Request, UseInterceptors, UseGuards, Post, Body, Query, Get } from '@nestjs/common';
+import { Controller, Request, UseInterceptors, UseGuards, Post, Body, Query, Get, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminPanelService } from './panel.service';
@@ -23,6 +23,9 @@ import { UnauthorizedSchema } from '../common/responseSchemas/unauthorized.schem
 import { ListRoleSchema } from './responseSchemas/listRole.schema';
 import { PanelBadRequest5Schema } from './responseSchemas/badRequest5.schema ';
 import { ForbiddenSchema } from '../common/responseSchemas/forbidden.schema';
+import { AddPermissionToRoleDto } from './DTOs/addPermission.dto';
+import { PermissionAddedSchema } from './responseSchemas/permissionAdded.schema';
+import { PanelBadRequest6Schema } from './responseSchemas/badRequest6.schema ';
 
 
 @ApiTags( 'Painel administrativo do sistema' )
@@ -261,6 +264,46 @@ export class AdminPanelController {
   @Get( 'role' )
   async listRoles ( @Request() req, @Query() query: ListRolesQuery ) {
     return this.service.listRoles( req, query );
+  }
+
+
+
+
+
+  @ApiBearerAuth()
+  @UseGuards( AuthGuard( 'jwt' ), AdminGuard )
+  @ApiOperation( {
+    summary: 'Adicionar permissões à Role',
+    description: 'Adiciona uma lista de permissões à uma role.'
+  } )
+  @ApiResponse( {
+    status: 200,
+    description: 'Sucesso.',
+    schema: PermissionAddedSchema
+  } )
+  @ApiResponse( {
+    status: 400,
+    description: 'Um ou mais dados enviados não passaram no teste de validação do class-validator',
+    schema: PanelBadRequest6Schema
+  } )
+  @ApiResponse( {
+    status: 401,
+    description: 'Não autenticado ou token expirado',
+    schema: UnauthorizedSchema
+  } )
+  @ApiResponse( {
+    status: 403,
+    description: 'Recurso proibido para o usuário contido no token',
+    schema: ForbiddenSchema
+  } )
+  @ApiResponse( {
+    status: 422,
+    description: 'Erro genérico durante o processamento da requisição',
+    schema: UnprocessableSchema
+  } )
+  @Put( 'role/permission/add' )
+  async addPermissionsToRole ( @Request() req, @Body() dto: AddPermissionToRoleDto ) {
+    return this.service.addPermissionsToRole( req );
   }
 
 }
