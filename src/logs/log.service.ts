@@ -3,8 +3,9 @@ import { Repository } from 'typeorm';
 import { repositoryConfig } from '../common/configs/repository.config';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { Log } from './models/log.model';
-import { GetLogsDto } from './DTOs/getLogs.dto';
+import { listLogsQuery } from './DTOs/listLogs.query';
 import { apiBaseUrl } from '../common/configs/api.conf';
+import { permissionFilter } from '../common/utils.util';
 
 @Injectable()
 export class LogService {
@@ -13,7 +14,8 @@ export class LogService {
     private readonly logRepository: Repository<Log>,
   ) { }
 
-  async getAll ( req: any, query: GetLogsDto ) {
+  async listLogs ( req: any, query: listLogsQuery ) {
+    permissionFilter( req, 'list', 'log' );
 
     let limit = query.limit ? +query.limit : 5;
     let page = query.page ? +query.page : 1

@@ -1,25 +1,8 @@
 import { IsString, IsOptional, IsNumberString, IsDateString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { GenericQuery } from "../../common/DTOs/genericQuery.query";
 
-export class GetLogsDto {
-  @IsOptional()
-  @IsNumberString()
-  @ApiProperty( {
-    example: 1,
-    description: 'número da página',
-    required: false
-  } )
-  page: number;
-
-  @IsOptional()
-  @IsNumberString()
-  @ApiProperty( {
-    example: 5,
-    description: 'limite de items por página',
-    required: false
-  } )
-  limit: number;
-
+export class listLogsQuery extends GenericQuery {
   @IsOptional()
   @IsString()
   @ApiProperty( {

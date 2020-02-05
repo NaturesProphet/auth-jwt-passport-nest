@@ -7,7 +7,12 @@ import { Role } from '../users/permissions/models/role.model';
 import { Permission } from '../users/permissions/models/permission.model';
 import { CreatePermissionDto } from './DTOs/createPermission.dto';
 import { CreateRoleDto } from './DTOs/createRole.dto';
-import { checkEntityAlreadExist } from '../common/utils.util';
+import { checkEntityAlreadExist, permissionFilter } from '../common/utils.util';
+import { apiBaseUrl } from '../common/configs/api.conf';
+import { paginate } from 'nestjs-typeorm-paginate';
+import { ListPermissionsQuery } from './DTOs/listPermissions.query';
+import { ListRolesQuery } from './DTOs/listRoles.query';
+import { AddPermissionToRoleDto } from './DTOs/addPermission.dto';
 
 @Injectable()
 export class AdminPanelService {
@@ -21,6 +26,7 @@ export class AdminPanelService {
   ) { }
 
   async createAdmin ( req ) {
+    permissionFilter( req, 'create', 'adminAccount' );
     let dto: CreateAdminDto = req.body;
     let admin: Admin = new Admin();
     admin.setUp( dto );
@@ -40,6 +46,7 @@ export class AdminPanelService {
   }
 
   async createPermission ( req ) {
+    permissionFilter( req, 'create', 'permission' );
     let dto: CreatePermissionDto = req.body;
     try {
       return await this.permissionRepository.save( {
@@ -54,6 +61,7 @@ export class AdminPanelService {
   }
 
   async createRole ( req ) {
+    permissionFilter( req, 'create', 'role' );
     let dto: CreateRoleDto = req.body;
     let role = new Role();
     role.name = dto.name;
@@ -82,6 +90,105 @@ export class AdminPanelService {
       checkEntityAlreadExist( err.message );
       throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
     }
+  }
+
+  async listPermissions ( req, query: ListPermissionsQuery ) {
+    permissionFilter( req, 'list', 'permission' );
+    let limit = query.limit ? +query.limit : 5;
+    let page = query.page ? +query.page : 1
+    let endpoint = apiBaseUrl + req._parsedUrl.pathname;
+    try {
+      let qb = this.permissionRepository.createQueryBuilder( 'p' )
+        .where( '1=1' )
+        .orderBy( 'p.id', 'DESC' );
+      if ( query.id ) {
+        qb.andWhere( 'p.id = :id', { id: query.id } );
+      }
+      if ( query.feature ) {
+        qb.andWhere( 'p.feature = :feature', { feature: query.feature } );
+      }
+      if ( query.operation ) {
+        qb.andWhere( 'p.operation = :operation', { operation: query.operation } );
+      }
+      return await paginate<Permission>( qb, { page: page, limit: limit, route: endpoint } );
+    } catch ( err ) {
+      throw new UnprocessableEntityException( err.message );
+    }
+  }
+
+  async listRoles ( req, query: ListRolesQuery ) {
+    permissionFilter( req, 'list', 'role' );
+    let limit = query.limit ? +query.limit : 5;
+    let page = query.page ? +query.page : 1
+    let endpoint = apiBaseUrl + req._parsedUrl.pathname;
+    try {
+      let qb = this.roleRepository.createQueryBuilder( 'r' )
+        .where( '1=1' )
+        .orderBy( 'r.id', 'DESC' );
+      if ( query.id ) {
+        qb.andWhere( 'r.id = :id', { id: query.id } );
+      }
+      if ( query.name ) {
+        qb.andWhere( 'r.name = :name', { name: query.name } );
+      }
+      return await paginate<Role>( qb, { page: page, limit: limit, route: endpoint } );
+    } catch ( err ) {
+      throw new UnprocessableEntityException( err.message );
+    }
+  }
+
+  async addPermissionsToRole ( req ) {
+    permissionFilter( req, 'edit', 'role' );
+    let dto: AddPermissionToRoleDto = req.body;
+
+    let role: Role;
+    let permissions: Permission[];
+
+    try {
+      role = await this.roleRepository.createQueryBuilder( 'r' )
+        .leftJoinAndSelect( 'r.permissions', 'permissions' )
+        .where( 'r.id = :id', { id: dto.role } )
+        .getOne();
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao buscar dados de roles. ${err.message}` );
+    }
+    if ( !role ) {
+      throw new UnprocessableEntityException( `Role ${dto.role} não encontrada` );
+    }
+
+    try {
+      permissions = await this.permissionRepository.createQueryBuilder( 'p' )
+        .where( 'p.id IN :ids', { ids: dto.permissions } )
+        .orderBy( 'p.id', 'DESC' )
+        .getMany();
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao buscar dados de permissions. ${err.message}` );
+    }
+    if ( !permissions || permissions.length == 0 ) {
+      throw new UnprocessableEntityException( `Permissões não encontradas` );
+    }
+    if ( permissions.length != dto.permissions.length ) {
+      throw new UnprocessableEntityException( `Nem todas as permissões foram encontradas.`
+        + `(Encontrado um total de ${permissions.length} de ${dto.permissions.length}). `
+        + `Confira a lista de permissões que você enviou` );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
 
 }

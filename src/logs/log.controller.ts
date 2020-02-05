@@ -2,7 +2,7 @@ import { Controller, Request, Get, UseInterceptors, UseGuards, Query } from '@ne
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LogService } from './log.service';
 import { LogInterceptor } from './log.interceptor';
-import { GetLogsDto } from './DTOs/getLogs.dto';
+import { listLogsQuery } from './DTOs/listLogs.query';
 import { AuthGuard } from '@nestjs/passport';
 import { GetLogSchema } from './responseSchemas/getLog.schema';
 import { UnauthorizedSchema } from '../common/responseSchemas/unauthorized.schema';
@@ -50,8 +50,8 @@ export class LogController {
     schema: UnprocessableSchema
   } )
   @Get()
-  getAll ( @Request() req, @Query() query: GetLogsDto ) {
-    return this.service.getAll( req, query );
+  getAll ( @Request() req, @Query() query: listLogsQuery ) {
+    return this.service.listLogs( req, query );
   }
 
 }

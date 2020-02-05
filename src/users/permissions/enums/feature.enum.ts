@@ -1,4 +1,6 @@
 export enum EnumPermissionFeature {
   ADMINACCOUNT = 'adminAccount',
-  LOG = 'log'
+  LOG = 'log',
+  ROLE = 'role',
+  PERMISSION = 'permission'
 }

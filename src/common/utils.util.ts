@@ -1,4 +1,5 @@
-import { ConflictException } from "@nestjs/common";
+import { ConflictException, ForbiddenException } from "@nestjs/common";
+import { Permission } from "src/users/permissions/models/permission.model";
 
 /**
  * Verify if an TypeORM erromsg means the entity already exists
@@ -40,4 +41,23 @@ export function getLastDaysInterval ( d: Date, daysInterval?: number ): string[]
     endDate.setUTCDate( new Date( endDate.getFullYear(), endDate.getMonth() + 1, 0 ).getDate() );
   }
   return [ startDate.toISOString(), endDate.toISOString() ];
+}
+
+
+export function permissionFilter ( req: any, operation: string, feature: string ) {
+  if ( req && req.user && req.user.role && req.user.role.permissions.length > 0 ) {
+    let permissions: Permission[] = req.user.role.permissions;
+    let valid = false;
+    for ( let i = 0; i < permissions.length; i++ ) {
+      if ( permissions[ i ].feature == feature && permissions[ i ].operation == operation ) {
+        valid = true;
+        break;
+      }
+    }
+    if ( valid == false ) {
+      throw new ForbiddenException( `${operation} ${feature}:  Permissões insuficientes` );
+    }
+  } else {
+    throw new ForbiddenException( `Nenhuma role válida configurada para o usuário.` );
+  }
 }
