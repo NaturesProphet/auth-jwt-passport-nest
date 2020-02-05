@@ -9,6 +9,13 @@ export class CreateRoleDto {
   } )
   name: string;
 
+  @IsString()
+  @ApiProperty( {
+    example: 'Role de testes, onde um admin pode editar e criar contas de admins',
+    description: 'Descrição da nova role'
+  } )
+  description: string;
+
   @IsArray()
   @ApiProperty( {
     example: [ 1, 2 ],

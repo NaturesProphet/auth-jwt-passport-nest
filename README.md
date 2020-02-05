@@ -10,8 +10,20 @@
 
 Sistema base pré-ajustado para começar projetos incríveis com autenticação profissional. Basta clonar o repositório e começar novos projetos com o código base já pronto!
 
+## Painel Administrativo
+Um painel administrativo pré configurado e pronto para iniciar novos projetos, dando acesso à dados sensíveis do sistema apenas para administradores com permissões válidas para cada operação específica
+
+## Permissões e grupos
+Contas de administrador possuem uma role, que é formada por uma agregação de várias permissões, que definem quais recursos a conta poderá acessar dentro do sistema
+
 ## Configuração do ambiente
 Crie um arquivo .env baseado no .env.example disponível na raíz do projeto.
+
+Suba um banco de dados Postgre. Você pode usar o script do package.json pronto para a tarefa usando o Docker:
+```
+npm run postgre:test
+```
+
 
 ## Iniciando a API em ambiente de desenvolvimento
 ```

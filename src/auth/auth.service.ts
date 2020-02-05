@@ -1,5 +1,4 @@
 import { Injectable, Inject, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Admin } from '../users/admin/models/admin.model';
@@ -11,7 +10,6 @@ import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     @Inject( repositoryConfig.admin )
     private readonly adminRepository: Repository<Admin>,
@@ -22,7 +20,12 @@ export class AuthService {
     switch ( accountType ) {
       case 'admin':
         try {
-          user = await this.adminRepository.findOne( { email: username } );
+          user = await this.adminRepository.createQueryBuilder( 'admin' )
+            .addSelect( 'admin.passwordHash' )
+            .leftJoinAndSelect( 'admin.role', 'role' )
+            .leftJoinAndSelect( 'role.permissions', 'permissions' )
+            .where( 'admin.email = email', { email: username } )
+            .getOne()
         } catch ( err ) {
           throw new UnprocessableEntityException( `Erro ao buscar dados do usuário. ${err.message}` );
         }
@@ -43,8 +46,7 @@ export class AuthService {
 
 
     if ( user && bcrypt.compareSync( pass, user.getPasswordHash() ) ) {
-      const { ...result } = user;
-      return result;
+      return user;
     }
     return null;
   }

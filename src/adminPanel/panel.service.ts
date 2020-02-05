@@ -7,6 +7,7 @@ import { Role } from '../users/permissions/models/role.model';
 import { Permission } from '../users/permissions/models/permission.model';
 import { CreatePermissionDto } from './DTOs/createPermission.dto';
 import { CreateRoleDto } from './DTOs/createRole.dto';
+import { checkEntityAlreadExist } from '../common/utils.util';
 
 @Injectable()
 export class AdminPanelService {
@@ -41,12 +42,13 @@ export class AdminPanelService {
   async createPermission ( req ) {
     let dto: CreatePermissionDto = req.body;
     try {
-      this.permissionRepository.save( {
+      return await this.permissionRepository.save( {
         operation: dto.operation,
         feature: dto.feature
       } );
     }
     catch ( err ) {
+      checkEntityAlreadExist( err.message );
       throw new UnprocessableEntityException( err.message );
     }
   }
@@ -55,8 +57,31 @@ export class AdminPanelService {
     let dto: CreateRoleDto = req.body;
     let role = new Role();
     role.name = dto.name;
-    let permissions: Permission[];
+    role.description = dto.description;
+    role.permissions = new Array();
 
+    // busca as permissões
+    for ( let i = 0; i < dto.permissions.length; i++ ) {
+      let permission: Permission = null;
+      try {
+        permission = await this.permissionRepository.findOne( { id: dto.permissions[ i ] } );
+      }
+      catch ( err ) {
+        console.log( err )
+        throw new UnprocessableEntityException( `Erro ao buscar permissões. ${err.message}` );
+      }
+      if ( !permission ) {
+        throw new UnprocessableEntityException( `Permissão ${dto.permissions[ i ]} não encontrada` );
+      }
+      role.permissions.push( permission );
+    }
+
+    try {
+      return await this.roleRepository.save( role );
+    } catch ( err ) {
+      checkEntityAlreadExist( err.message );
+      throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
+    }
   }
 
 }

@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './DTOs/login.dto';
 import { LogInterceptor } from '../logs/log.interceptor';
 import { UnauthorizedSchema } from '../common/responseSchemas/unauthorized.schema';
+import { AdminAuthSuccessSchema } from './responseSchemas/adminAuthSuccess.schema';
+import { ReadTokenSchema } from './responseSchemas/readToken.schema';
 
 @UseInterceptors( LogInterceptor )
 @ApiTags( 'Autenticação' )
@@ -19,15 +21,7 @@ export class AuthController {
   @ApiResponse( {
     status: 201,
     description: 'Usuário autenticado e token gerado.',
-    schema: {
-      example: {
-        access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImNocmlzIiwic3ViIjoyLCJpYXQiOjE1ODA4NDE5NjMsImV4cCI6MTU4MDg0Mjg2M30.HIQ3Rdmgaucy3xImo3PjcElOAk-mYKKkSIlXYUKCNnw",
-        user: {
-          userId: 2,
-          username: "chris"
-        }
-      }
-    }
+    schema: AdminAuthSuccessSchema
   } )
   @ApiResponse( {
     status: 401,
@@ -50,12 +44,7 @@ export class AuthController {
   @ApiResponse( {
     status: 200,
     description: 'Token lido com sucesso.',
-    schema: {
-      example: {
-        userId: 2,
-        username: "chris"
-      }
-    }
+    schema: ReadTokenSchema
   } )
   @ApiResponse( {
     status: 401,
