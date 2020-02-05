@@ -1,16 +1,19 @@
-import { Controller, Get, Request, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Get, Request, Post, UseGuards, Body, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './DTOs/login.dto';
+import { LogInterceptor } from '../logs/log.interceptor';
+import { UnauthorizedSchema } from '../common/responseSchemas/unauthorized.schema';
 
+@UseInterceptors( LogInterceptor )
 @ApiTags( 'Autenticação' )
 @Controller( 'auth' )
 export class AuthController {
   constructor( private readonly authService: AuthService ) { }
 
   @ApiOperation( {
-    summary: 'Login de usuários',
+    summary: 'Login de usuários administradores',
     description: 'Valida os dados de login e devolve um JWT para uso nesta api.'
   } )
   @ApiResponse( {
@@ -29,15 +32,10 @@ export class AuthController {
   @ApiResponse( {
     status: 401,
     description: 'Dados de login inválidos',
-    schema: {
-      example: {
-        statusCode: 401,
-        error: "Unauthorized"
-      }
-    }
+    schema: UnauthorizedSchema
   } )
   @UseGuards( AuthGuard( 'local' ) )
-  @Post( 'login' )
+  @Post( 'admin' )
   async login ( @Request() req, @Body() dto: LoginDto ) {
     return this.authService.login( req.user );
   }
@@ -62,12 +60,7 @@ export class AuthController {
   @ApiResponse( {
     status: 401,
     description: 'Usuário não está autenticado',
-    schema: {
-      example: {
-        statusCode: 401,
-        error: "Unauthorized"
-      }
-    }
+    schema: UnauthorizedSchema
   } )
   @Get( 'profile' )
   getProfile ( @Request() req ) {
