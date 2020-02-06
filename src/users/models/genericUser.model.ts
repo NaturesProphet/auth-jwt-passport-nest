@@ -51,7 +51,7 @@ export class GenericUser {
     enum: enumUserStatus,
     default: 'pendent'
   } )
-  status: enumUserStatus;
+  status: string;
 
   @Column( { nullable: true } )
   profilePicturePath: string;
@@ -82,27 +82,11 @@ export class GenericUser {
   }
 
   setStatus ( status: 'pendent' | 'active' | 'deleted' | 'suspended' ) {
-    switch ( status ) {
-      case 'pendent':
-        this.status = enumUserStatus.PENDENT;
-        break;
-      case 'active':
-        this.status = enumUserStatus.ACTIVE;
-        break;
-      case 'deleted':
-        this.status = enumUserStatus.DELETED;
-        break;
-      case 'suspended':
-        this.status = enumUserStatus.SUSPENDED;
-        break;
-    }
+    this.status = status;
   }
-
 
   getStatus () {
-    return this.status.toString();
+    return this.status;
   }
-
-
 
 }

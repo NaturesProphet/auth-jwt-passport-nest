@@ -32,3 +32,33 @@ npm start
 
 ## Debug
 Após iniciar o Debug (F5), aguarde a mensagem "API pronta e ouvindo na porta 3000" no terminal do debugger antes de iniciar a sua depuração.
+
+## Ativação de contas de usuário
+As contas de usuário entram no sistema como pendentes ao serem cadastradas, o que não permite o login. Se as configurações de ambiente (.env) estiverem com os dados de email corretamente configurados, o sistema enviará um email de confirmação para o email do usuário, e ao clicar no link, a conta é ativada e o usuário poderá se logar.
+
+![Email](./documentações/prints/email-1.png)
+![Email](./documentações/prints/email-2.png)
+
+
+
+## Documentação dos endpoints
+
+A API foi documentada com o novo Swagger 4, facilitando ao máximo a vida do time de front-end. para consultar a documentação, basta subir a api e acessar a rota raiz.
+
+![Swagger](./documentações/prints/swagger-1.png)
+![Swagger](./documentações/prints/swagger-2.png)
+
+Para consultar a documentação de uma rota, basta clicar nela, expandindo seus dados:
+
+![Swagger](./documentações/prints/exampleDoc1.png)
+![Swagger](./documentações/prints/exampleDoc2.png)
+![Swagger](./documentações/prints/exampleDoc3.png)
+
+
+
+
+
+
+## Banco de dados
+
+![Diagrama de estado 1](./documentações/diagramas/database.png)

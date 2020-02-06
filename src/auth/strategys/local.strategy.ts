@@ -10,14 +10,14 @@ export class LocalStrategy extends PassportStrategy( Strategy ) {
   }
 
   async validate ( req: any, username: string, password: string ): Promise<any> {
-    let authENdpoint: string = req._parsedUrl.pathname;
+    let authEndpoint: string = req._parsedUrl.pathname;
     let accountType: string;
-    switch ( authENdpoint ) {
+    switch ( authEndpoint ) {
       case '/auth/admin':
         accountType = 'admin';
         break;
       default:
-        throw new UnauthorizedException( `Tipo de conta ${authENdpoint} desconhecida` );
+        throw new UnauthorizedException( `Tipo de conta ${authEndpoint} desconhecida` );
     }
     const user = await this.authService.validateUser( username, password, accountType );
     if ( !user ) {

@@ -26,6 +26,14 @@ import { ForbiddenSchema } from '../common/responseSchemas/forbidden.schema';
 import { EditPermissionsFromRole } from './DTOs/addPermission.dto';
 import { PermissionAddedSchema } from './responseSchemas/permissionAdded.schema';
 import { PanelBadRequest6Schema } from './responseSchemas/badRequest6.schema ';
+import { EditAccountStatusDto } from './DTOs/editAccountStatus.dto';
+import { UpdatePasswordDto } from '../auth/DTOs/updatePassword.dto';
+import { UpdatedPasswordSchema } from './responseSchemas/updatedPassword.schema';
+import { PermissionsRemovedSchema } from './responseSchemas/permissionRemoved.schema';
+import { PanelBadRequest7Schema } from './responseSchemas/badRequest7.schema ';
+import { PanelBadRequest8Schema } from './responseSchemas/badRequest8.schema';
+import { AdminPasswordUpdatedSchema } from './responseSchemas/adminPasswordUpdated.schema';
+import { PanelBadRequest9Schema } from './responseSchemas/badRequest9.schema';
 
 
 @ApiTags( 'Painel administrativo do sistema' )
@@ -322,12 +330,12 @@ export class AdminPanelController {
   @ApiResponse( {
     status: 200,
     description: 'Sucesso.',
-    schema: {}
+    schema: PermissionsRemovedSchema
   } )
   @ApiResponse( {
     status: 400,
     description: 'Um ou mais dados enviados não passaram no teste de validação do class-validator',
-    schema: {}
+    schema: PanelBadRequest7Schema
   } )
   @ApiResponse( {
     status: 401,
@@ -347,6 +355,94 @@ export class AdminPanelController {
   @Put( 'role/permission/remove' )
   async removePermissionsToRole ( @Request() req, @Body() dto: EditPermissionsFromRole ) {
     return this.service.removePermissionsToRole( req );
+  }
+
+
+
+
+
+
+
+
+  @ApiBearerAuth()
+  @UseGuards( AuthGuard( 'jwt' ), AdminGuard )
+  @ApiOperation( {
+    summary: 'Alterar status de contas de usuários',
+    description: 'Altera o status de contas de usuários, excluindo, ativando ou suspendendo essas contas'
+  } )
+  @ApiResponse( {
+    status: 200,
+    description: 'Sucesso.',
+    schema: UpdatedPasswordSchema
+  } )
+  @ApiResponse( {
+    status: 400,
+    description: 'Um ou mais dados enviados não passaram no teste de validação do class-validator',
+    schema: PanelBadRequest8Schema
+  } )
+  @ApiResponse( {
+    status: 401,
+    description: 'Não autenticado ou token expirado',
+    schema: UnauthorizedSchema
+  } )
+  @ApiResponse( {
+    status: 403,
+    description: 'Recurso proibido para o usuário contido no token',
+    schema: ForbiddenSchema
+  } )
+  @ApiResponse( {
+    status: 422,
+    description: 'Erro genérico durante o processamento da requisição',
+    schema: UnprocessableSchema
+  } )
+  @Put( 'accounts/status' )
+  async editAccountStatus ( @Request() req, @Body() dto: EditAccountStatusDto ) {
+    return this.service.editAccountStatus( req );
+  }
+
+
+
+
+
+
+
+
+
+
+  @ApiBearerAuth()
+  @UseGuards( AuthGuard( 'jwt' ), AdminGuard )
+  @ApiOperation( {
+    summary: 'Atualizar senha de administrador',
+    description: 'Altera a senha do usuário'
+  } )
+  @ApiResponse( {
+    status: 200,
+    description: 'Sucesso.',
+    schema: AdminPasswordUpdatedSchema
+  } )
+  @ApiResponse( {
+    status: 400,
+    description: 'Um ou mais dados enviados não passaram no teste de validação do class-validator',
+    schema: PanelBadRequest9Schema
+  } )
+  @ApiResponse( {
+    status: 401,
+    description: 'Não autenticado ou token expirado',
+    schema: UnauthorizedSchema
+  } )
+  @ApiResponse( {
+    status: 403,
+    description: 'Recurso proibido para o usuário contido no token',
+    schema: ForbiddenSchema
+  } )
+  @ApiResponse( {
+    status: 422,
+    description: 'Erro genérico durante o processamento da requisição',
+    schema: UnprocessableSchema
+  } )
+  @Put( 'accounts/admin/password' )
+  async updatePassword ( @Request() req, @Body() dto: UpdatePasswordDto ) {
+    return this.service.updatePassword( req );
   }
 
 }

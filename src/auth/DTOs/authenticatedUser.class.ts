@@ -5,5 +5,6 @@ export class AuthenticatedUser {
   name: string;
   email: string;
   accountType: string;
+  status: string;
   role?: Role
 }

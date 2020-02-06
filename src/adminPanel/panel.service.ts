@@ -1,5 +1,5 @@
-import { Injectable, Inject, UnprocessableEntityException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Injectable, Inject, UnprocessableEntityException, ForbiddenException } from '@nestjs/common';
+import { Repository, UpdateResult } from 'typeorm';
 import { repositoryConfig } from '../common/configs/repository.config';
 import { Admin } from '../users/admin/models/admin.model';
 import { CreateAdminDto } from '../users/admin/DTOs/createAdmin.dto';
@@ -13,6 +13,9 @@ import { paginate } from 'nestjs-typeorm-paginate';
 import { ListPermissionsQuery } from './DTOs/listPermissions.query';
 import { ListRolesQuery } from './DTOs/listRoles.query';
 import { EditPermissionsFromRole } from './DTOs/addPermission.dto';
+import { EditAccountStatusDto } from './DTOs/editAccountStatus.dto';
+import { UpdatePasswordDto } from '../auth/DTOs/updatePassword.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AdminPanelService {
@@ -41,7 +44,8 @@ export class AdminPanelService {
     try {
       return await this.adminRepository.save( admin );
     } catch ( err ) {
-      throw new UnprocessableEntityException( `Erro ao salvar usuário. ${err.mesage}` );
+      checkEntityAlreadExist( err.message );
+      throw new UnprocessableEntityException( `Erro ao salvar usuário. ${err.message}` );
     }
   }
 
@@ -193,8 +197,6 @@ export class AdminPanelService {
     }
   }
 
-
-
   async removePermissionsToRole ( req ) {
     permissionFilter( req, 'edit', 'role' );
     let dto: EditPermissionsFromRole = req.body;
@@ -217,7 +219,7 @@ export class AdminPanelService {
     try {
       permissions = await this.permissionRepository.createQueryBuilder( 'p' )
         .where( `p.id IN (${dto.permissions})` )
-        .orderBy( 'p.id', 'DESC' )
+        .orderBy( 'p.id', 'ASC' )
         .getMany();
     } catch ( err ) {
       throw new UnprocessableEntityException( `Erro ao buscar dados de permissions. ${err.message}` );
@@ -237,7 +239,7 @@ export class AdminPanelService {
       let permissionId = permissions[ i ].id;
       let isIn = false;
 
-      for ( let z = 0; z < role.permissions.length; z++ ) {
+      for ( let z = i; z < role.permissions.length; z++ ) {
         if ( role.permissions[ z ].id == permissionId ) {
           isIn = true;
           role.permissions[ z ] = null;
@@ -254,6 +256,54 @@ export class AdminPanelService {
       return await this.roleRepository.save( role );
     } catch ( err ) {
       throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
+    }
+  }
+
+  async editAccountStatus ( req ) {
+    permissionFilter( req, 'edit', 'adminAccount' );
+    let dto: EditAccountStatusDto = req.body;
+    if ( dto.accountType == 'admin' && dto.status == 'deleted' ) {
+      permissionFilter( req, 'delete', 'adminAccount' );
+    }
+
+    switch ( dto.accountType ) {
+      case 'admin':
+        return await this.adminRepository.createQueryBuilder( 'admin' )
+          .update().set( { status: dto.status } )
+          .where( 'admin.id = :id', { id: dto.userId } )
+          .execute();
+        break;
+      //..
+      //..
+      //..
+      default:
+        throw new UnprocessableEntityException( `Tipo de conta desconhecido` );
+        break;
+    }
+  }
+
+  async updatePassword ( req ) {
+    let user: Admin;
+    let dto: UpdatePasswordDto = req.body;
+    try {
+      user = await this.adminRepository.createQueryBuilder( 'admin' )
+        .addSelect( 'admin.passwordHash' )
+        .where( 'admin.id = :id', { id: req.user.id } )
+        .getOne();
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao pesqusiar usuário. ${err.message}` );
+    }
+
+    if ( user && bcrypt.compareSync( dto.password, user.getPasswordHash() ) ) {
+      user.setPassword( dto.newPassword );
+      try {
+        return await this.adminRepository.save( user );
+      }
+      catch ( err ) {
+        throw new UnprocessableEntityException( `Erro ao salvar usuário. ${err.message}` );
+      }
+    } else {
+      throw new ForbiddenException( `A senha informada não confere` )
     }
   }
 

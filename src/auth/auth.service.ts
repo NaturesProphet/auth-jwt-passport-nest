@@ -1,4 +1,4 @@
-import { Injectable, Inject, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException, UnprocessableEntityException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { Admin } from '../users/admin/models/admin.model';
@@ -25,7 +25,8 @@ export class AuthService {
             .leftJoinAndSelect( 'admin.role', 'role' )
             .leftJoinAndSelect( 'role.permissions', 'permissions' )
             .where( 'admin.email = email', { email: username } )
-            .getOne()
+            .andWhere( "admin.status != 'deleted'" )
+            .getOne();
         } catch ( err ) {
           throw new UnprocessableEntityException( `Erro ao buscar dados do usuário. ${err.message}` );
         }
@@ -46,6 +47,13 @@ export class AuthService {
 
 
     if ( user && bcrypt.compareSync( pass, user.getPasswordHash() ) ) {
+      if ( user.getStatus() == 'deleted' ) {
+        return null;
+      } else if ( user.getStatus() == 'suspended' ) {
+        throw new ForbiddenException( `Sua conta foi suspensa. Entre em contato com a equipe de suporte` );
+      } else if ( user.getStatus() == 'pendent' ) {
+        throw new UnauthorizedException( `Sua conta ainda não foi ativada. Verifique seu e-mail.` );
+      }
       return user;
     }
     return null;
@@ -58,6 +66,7 @@ export class AuthService {
       email: user.email,
       id: user.id,
       accountType: user.accountType,
+      status: user.status,
       role: user.role
     };
     return {
