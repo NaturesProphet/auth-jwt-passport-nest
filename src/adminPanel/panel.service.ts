@@ -12,7 +12,7 @@ import { apiBaseUrl } from '../common/configs/api.conf';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { ListPermissionsQuery } from './DTOs/listPermissions.query';
 import { ListRolesQuery } from './DTOs/listRoles.query';
-import { AddPermissionToRoleDto } from './DTOs/addPermission.dto';
+import { EditPermissionsFromRole } from './DTOs/addPermission.dto';
 
 @Injectable()
 export class AdminPanelService {
@@ -140,7 +140,7 @@ export class AdminPanelService {
 
   async addPermissionsToRole ( req ) {
     permissionFilter( req, 'edit', 'role' );
-    let dto: AddPermissionToRoleDto = req.body;
+    let dto: EditPermissionsFromRole = req.body;
 
     let role: Role;
     let permissions: Permission[];
@@ -192,5 +192,70 @@ export class AdminPanelService {
       throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
     }
   }
+
+
+
+  async removePermissionsToRole ( req ) {
+    permissionFilter( req, 'edit', 'role' );
+    let dto: EditPermissionsFromRole = req.body;
+
+    let role: Role;
+    let permissions: Permission[];
+
+    try {
+      role = await this.roleRepository.createQueryBuilder( 'r' )
+        .leftJoinAndSelect( 'r.permissions', 'permissions' )
+        .where( 'r.id = :id', { id: dto.role } )
+        .getOne();
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao buscar dados de roles. ${err.message}` );
+    }
+    if ( !role ) {
+      throw new UnprocessableEntityException( `Role ${dto.role} não encontrada` );
+    }
+
+    try {
+      permissions = await this.permissionRepository.createQueryBuilder( 'p' )
+        .where( `p.id IN (${dto.permissions})` )
+        .orderBy( 'p.id', 'DESC' )
+        .getMany();
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao buscar dados de permissions. ${err.message}` );
+    }
+    if ( !permissions || permissions.length == 0 ) {
+      throw new UnprocessableEntityException( `Permissões não encontradas` );
+    }
+    if ( permissions.length != dto.permissions.length ) {
+      throw new UnprocessableEntityException( `Nem todas as permissões foram encontradas.`
+        + `(Encontrado um total de ${permissions.length} de ${dto.permissions.length}). `
+        + `Confira a lista de permissões que você enviou` );
+    }
+
+
+
+    for ( let i = 0; i < permissions.length; i++ ) {
+      let permissionId = permissions[ i ].id;
+      let isIn = false;
+
+      for ( let z = 0; z < role.permissions.length; z++ ) {
+        if ( role.permissions[ z ].id == permissionId ) {
+          isIn = true;
+          role.permissions[ z ] = null;
+          break;
+        }
+      }
+      if ( isIn == false ) {
+        throw new UnprocessableEntityException( `A permissão ${permissionId} não `
+          + `foi encontrada na role ${dto.role}` );
+      }
+    }
+
+    try {
+      return await this.roleRepository.save( role );
+    } catch ( err ) {
+      throw new UnprocessableEntityException( `Erro ao salvar a role. ${err.message}` );
+    }
+  }
+
 
 }

@@ -23,7 +23,7 @@ import { UnauthorizedSchema } from '../common/responseSchemas/unauthorized.schem
 import { ListRoleSchema } from './responseSchemas/listRole.schema';
 import { PanelBadRequest5Schema } from './responseSchemas/badRequest5.schema ';
 import { ForbiddenSchema } from '../common/responseSchemas/forbidden.schema';
-import { AddPermissionToRoleDto } from './DTOs/addPermission.dto';
+import { EditPermissionsFromRole } from './DTOs/addPermission.dto';
 import { PermissionAddedSchema } from './responseSchemas/permissionAdded.schema';
 import { PanelBadRequest6Schema } from './responseSchemas/badRequest6.schema ';
 
@@ -302,8 +302,51 @@ export class AdminPanelController {
     schema: UnprocessableSchema
   } )
   @Put( 'role/permission/add' )
-  async addPermissionsToRole ( @Request() req, @Body() dto: AddPermissionToRoleDto ) {
+  async addPermissionsToRole ( @Request() req, @Body() dto: EditPermissionsFromRole ) {
     return this.service.addPermissionsToRole( req );
+  }
+
+
+
+
+
+
+
+
+  @ApiBearerAuth()
+  @UseGuards( AuthGuard( 'jwt' ), AdminGuard )
+  @ApiOperation( {
+    summary: 'Remover permissões de uma Role',
+    description: 'remove uma lista de permissões de uma role.'
+  } )
+  @ApiResponse( {
+    status: 200,
+    description: 'Sucesso.',
+    schema: {}
+  } )
+  @ApiResponse( {
+    status: 400,
+    description: 'Um ou mais dados enviados não passaram no teste de validação do class-validator',
+    schema: {}
+  } )
+  @ApiResponse( {
+    status: 401,
+    description: 'Não autenticado ou token expirado',
+    schema: UnauthorizedSchema
+  } )
+  @ApiResponse( {
+    status: 403,
+    description: 'Recurso proibido para o usuário contido no token',
+    schema: ForbiddenSchema
+  } )
+  @ApiResponse( {
+    status: 422,
+    description: 'Erro genérico durante o processamento da requisição',
+    schema: UnprocessableSchema
+  } )
+  @Put( 'role/permission/remove' )
+  async removePermissionsToRole ( @Request() req, @Body() dto: EditPermissionsFromRole ) {
+    return this.service.removePermissionsToRole( req );
   }
 
 }

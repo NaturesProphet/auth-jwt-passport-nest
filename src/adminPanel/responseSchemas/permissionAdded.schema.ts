@@ -2,10 +2,30 @@ import { SchemaObject } from "@nestjs/swagger/dist/interfaces/open-api-spec.inte
 
 export const PermissionAddedSchema: SchemaObject = {
   example: {
-    "operation": "create",
-    "feature": "permission",
-    "id": 14,
-    "createdAt": "2020-02-05T21:43:12.775Z",
-    "updatedAt": "2020-02-05T21:43:12.775Z"
+    "id": 1,
+    "name": "Admin Master",
+    "description": "Todos os poderes",
+    "permissions": [
+      {
+        "id": 1,
+        "operation": "edit",
+        "feature": "adminAccount"
+      },
+      {
+        "id": 2,
+        "operation": "create",
+        "feature": "adminAccount"
+      },
+      {
+        "id": 3,
+        "operation": "delete",
+        "feature": "adminAccount"
+      },
+      {
+        "id": 4,
+        "operation": "list",
+        "feature": "adminAccount"
+      }
+    ]
   }
 }
