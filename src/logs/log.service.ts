@@ -22,9 +22,9 @@ export class LogService {
     let endpoint = apiBaseUrl + req._parsedUrl.pathname;
 
     try {
-      const queryBuilder = this.logRepository.createQueryBuilder( 'log' );
-      queryBuilder.orderBy( "log.id", "DESC" );
-
+      const queryBuilder = this.logRepository.createQueryBuilder( 'log' )
+        .addSelect( 'log.createdAt' )
+        .orderBy( "log.id", "DESC" );
       if ( query.accountType ) {
         queryBuilder.andWhere( 'log.accountType = :data', { data: query.accountType } );
       }
