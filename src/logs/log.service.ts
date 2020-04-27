@@ -50,7 +50,7 @@ export class LogService {
         queryBuilder.andWhere( 'log.response = :data7', { data7: query.response } );
       }
       if ( query.userAgent ) {
-        queryBuilder.andWhere( 'log.userAgent = :data8', { data8: query.userAgent } );
+        queryBuilder.andWhere( `UPPER(log.userAgent) like UPPER('%${query.userAgent}%')` );
       }
 
       let results = await paginate<Log>( queryBuilder, { page: page, limit: limit, route: endpoint } );

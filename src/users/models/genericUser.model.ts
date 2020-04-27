@@ -16,10 +16,10 @@ export class GenericUser {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn( { select: false } )
+  @CreateDateColumn( { type: 'timestamp with time zone' } )
   createdAt: Date;
 
-  @UpdateDateColumn( { select: false } )
+  @UpdateDateColumn( { type: 'timestamp with time zone' } )
   updatedAt: Date;
 
   @Column()
